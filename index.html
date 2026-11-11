@@ -1,0 +1,412 @@
+<!doctype html>
+<!-- Filename: index.html -->
+<!-- Sidekick code-purpose: Provides the accessible document shell, styling, and pinned CDN dependencies for the React to-do list. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A simple React to-do list.">
+  <title>Task Bloom</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f3f6fb;
+      --surface: #ffffff;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #dbe3f0;
+      --brand: #3157d5;
+      --brand-dark: #2648b9;
+      --brand-soft: #eaf0ff;
+      --danger: #a8334b;
+      --danger-soft: #fff3f5;
+      --success: #287a5c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background: radial-gradient(circle at top left, #e1e9ff 0, transparent 34rem), linear-gradient(135deg, #f8faff 0%, #edf2fa 100%);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      line-height: 1.5;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+    }
+
+    .app-shell {
+      width: min(calc(100% - 2rem), 44rem);
+      margin: 0 auto;
+      padding: clamp(2rem, 8vw, 5.5rem) 0 3rem;
+    }
+
+    .todo-card {
+      overflow: hidden;
+      padding: clamp(1.5rem, 5vw, 2.5rem);
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      border-radius: 1.5rem;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 1.4rem 3.5rem rgba(35, 55, 93, 0.14);
+    }
+
+    .eyebrow {
+      margin: 0 0 0.55rem;
+      color: var(--brand);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 0.55rem;
+      font-size: clamp(2rem, 7vw, 3rem);
+      letter-spacing: -0.045em;
+      line-height: 1.05;
+    }
+
+    .intro {
+      max-width: 36rem;
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .task-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.7rem;
+      margin-top: 1.75rem;
+    }
+
+    .task-input {
+      width: 100%;
+      min-width: 0;
+      min-height: 3rem;
+      padding: 0.82rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 0.85rem;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .task-input::placeholder {
+      color: #8a95a7;
+    }
+
+    .task-input:focus-visible {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 0.24rem rgba(49, 87, 213, 0.17);
+    }
+
+    .add-button {
+      min-height: 3rem;
+      padding: 0.82rem 1.1rem;
+      border: 0;
+      border-radius: 0.85rem;
+      background: var(--brand);
+      box-shadow: 0 0.5rem 1rem rgba(49, 87, 213, 0.2);
+      color: #fff;
+      font-weight: 750;
+      transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .add-button:not(:disabled):hover {
+      background: var(--brand-dark);
+      box-shadow: 0 0.7rem 1.2rem rgba(49, 87, 213, 0.27);
+      transform: translateY(-1px);
+    }
+
+    .add-button:disabled {
+      background: #a8b5d2;
+      box-shadow: none;
+    }
+
+    .add-button:focus-visible,
+    .delete-button:focus-visible,
+    .check-control input:focus-visible + .checkmark {
+      outline: 3px solid rgba(49, 87, 213, 0.36);
+      outline-offset: 3px;
+    }
+
+    .form-note {
+      grid-column: 1 / -1;
+      margin: -0.15rem 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .task-list-section {
+      margin-top: 2rem;
+    }
+
+    .list-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .list-heading h2 {
+      margin-bottom: 0;
+      font-size: 1.05rem;
+      letter-spacing: -0.015em;
+    }
+
+    .task-count {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      text-align: right;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 0.7rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.78rem;
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      background: #fff;
+      transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    .task-item:hover {
+      border-color: #c6d2e9;
+      box-shadow: 0 0.45rem 1rem rgba(35, 55, 93, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .task-item.is-complete {
+      background: #f7f9ff;
+    }
+
+    .check-control {
+      position: relative;
+      display: block;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .check-control input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .checkmark {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      place-items: center;
+      border: 2px solid #aab7cc;
+      border-radius: 50%;
+      background: #fff;
+      pointer-events: none;
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+
+    .checkmark::after {
+      width: 0.48rem;
+      height: 0.27rem;
+      border: solid #fff;
+      border-width: 0 0 0.13rem 0.13rem;
+      content: "";
+      opacity: 0;
+      transform: rotate(-45deg) translate(0.02rem, -0.02rem);
+      transition: opacity 160ms ease;
+    }
+
+    .check-control input:checked + .checkmark {
+      border-color: var(--success);
+      background: var(--success);
+    }
+
+    .check-control input:checked + .checkmark::after {
+      opacity: 1;
+    }
+
+    .task-text {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 0.97rem;
+      font-weight: 600;
+    }
+
+    .is-complete .task-text {
+      color: var(--muted);
+      font-weight: 500;
+      text-decoration: line-through;
+      text-decoration-thickness: 0.1em;
+    }
+
+    .delete-button {
+      padding: 0.42rem 0.62rem;
+      border: 1px solid #f1cbd2;
+      border-radius: 0.65rem;
+      background: var(--danger-soft);
+      color: var(--danger);
+      font-size: 0.82rem;
+      font-weight: 700;
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+
+    .delete-button:hover {
+      border-color: #e8aeb9;
+      background: #ffe8ec;
+    }
+
+    .empty-state {
+      padding: 2rem 1rem;
+      border: 1px dashed #c7d3e8;
+      border-radius: 1rem;
+      background: #f9fbff;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty-mark {
+      display: grid;
+      width: 2.45rem;
+      height: 2.45rem;
+      margin: 0 auto 0.75rem;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--brand-soft);
+      color: var(--brand);
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+
+    .empty-state p {
+      margin-bottom: 0.25rem;
+    }
+
+    .empty-state p:last-child {
+      margin-bottom: 0;
+      font-size: 0.9rem;
+    }
+
+    .card-footer {
+      margin-top: 1.6rem;
+      padding-top: 1.1rem;
+      border-top: 1px solid #e8edf5;
+      color: var(--muted);
+      font-size: 0.84rem;
+      text-align: center;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .noscript-message {
+      width: min(calc(100% - 2rem), 44rem);
+      margin: 3rem auto;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      background: #fff;
+      color: var(--ink);
+      text-align: center;
+    }
+
+    @media (max-width: 34rem) {
+      .app-shell {
+        width: min(calc(100% - 1rem), 44rem);
+        padding-top: 1rem;
+      }
+
+      .todo-card {
+        padding: 1.25rem;
+        border-radius: 1.2rem;
+      }
+
+      .task-form {
+        grid-template-columns: 1fr;
+      }
+
+      .add-button {
+        width: 100%;
+      }
+
+      .task-item {
+        grid-template-columns: 1.5rem minmax(0, 1fr);
+      }
+
+      .delete-button {
+        grid-column: 2;
+        justify-self: start;
+        margin-top: -0.1rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <noscript>
+    <p class="noscript-message">This to-do list needs JavaScript enabled.</p>
+  </noscript>
+
+  <script crossorigin="anonymous" src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
